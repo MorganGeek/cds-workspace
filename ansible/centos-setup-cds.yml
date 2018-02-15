@@ -1,0 +1,8 @@
+- hosts:
+    - cds
+  remote_user: "{{ global_user }}"
+  serial: 1
+  roles:
+    - common
+    - docker
+    - cds

@@ -1,0 +1,97 @@
+- name: Directories are created
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ global_user }}"
+    mode: "{{ item.mode }}"
+  with_items: "{{ directories }}"
+  tags: [docker]
+
+- name: Dependencies are present
+  yum: name="{{ item }}" state=present
+  with_items:
+    - httpd-tools
+  tags: [docker]
+
+- name: files are copied
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items: "{{ files }}"
+  register: copy_files
+  tags: [docker]
+
+- name: Docker is present
+  yum:
+    name: docker-engine
+    state: present
+  tags: [docker]
+
+- name: python-pip is present
+  yum:
+    name: python-pip
+    state: present
+  tags: [docker]
+
+# - name: "docker-py {{ docker_py_version }} is present"
+- name: Python dependencies are satisfied
+  pip:
+    requirements: "{{ role_path }}/files/pip-requirements.txt"
+  tags: [docker]
+
+- name: daemon is reloaded
+  command: systemctl daemon-reload
+  when: copy_files|changed
+  tags: [docker]
+
+- name: docker service is restarted
+  service:
+    name: docker
+    state: restarted
+    enabled: yes
+  when: copy_files|changed
+  tags: [docker]
+# FIXME : docker service should be restarted when iptables configuration has changed
+
+- name: docker service is present
+  service:
+    name: docker
+    enabled: yes
+    state: started
+  tags: [docker]
+
+- name: Portainer credentials are created
+  command: "bash -c \"htpasswd -nbB admin {{ portainer_password }} | cut -d ':' -f 2\""
+  changed_when: false
+  register: portainer_password_hash
+  tags: [docker]
+
+- name: Portainer (Docker UI) is running
+  docker_container:
+    name: "{{ container_name }}"
+    image: "{{ container_image }}"
+    restart_policy: "{{ container_restart_policy }}"
+    ports: "{{ server_port }}:{{ server_port }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ data_dir }}:/data"
+    command:
+      - "--admin-password {{ portainer_password_hash.stdout }}"
+  tags: [docker]
+
+- name: Authenticated
+  shell: >
+    curl -X POST localhost:{{ server_port }}/api/auth -d '{"username":"admin", "password":"{{ portainer_password }}"}' -H 'Content-Type: application/json' |  jq '.jwt' --raw-output
+  args:
+    warn: false
+  register: bearer
+  changed_when: false
+  tags: [docker]
+
+- name: Endpoint is created
+  shell: >
+    rm -f {{ portainer_home }}/portainer.endpoint; curl -X POST localhost:{{ server_port }}/api/endpoints?active=true -H 'Content-Type: application/json' -H 'Authorization: Bearer {{ bearer.stdout }}' -d '{"Name":"local", "URL":"unix:///var/run/docker.sock", "TLS": false}' >> {{ portainer_home }}/portainer.endpoint
+  args:
+    creates: "{{ portainer_home }}/portainer.endpoint"
+    warn: false
+  tags: [docker]

@@ -1,0 +1,31 @@
+- name: Allow 'vagrant' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%vagrant'
+    line: '%vagrant ALL=(ALL) NOPASSWD: ALL'
+  tags: [common]
+
+- name: Dependencies are present
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ dependencies }}"
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  tags: [common]
+
+- name: Dependencies are present
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ dependencies }}"
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  tags: [common]
+
+- name: Host is present
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "^{{ item.host_ip }}"
+    line: "{{ item.host_ip }} {{ item.host_name }}"
+  with_items: "{{ hostnames }}"
+  tags: [common]

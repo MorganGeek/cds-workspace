@@ -1,0 +1,18 @@
+# wuuut 1.10.x not handled
+container_version: 1.14.0
+container_name: "portainer"
+container_image: "portainer/portainer:{{ container_version }}"
+
+docker_py_version: 1.9.0
+server_port: 9000
+portainer_home: /var/portainer
+data_dir: "{{ portainer_home }}/data"
+portainer_password: portainer
+
+directories: [
+  { path: "{{ data_dir }}", mode: "0777" },
+]
+
+files: [
+  { src: "docker.centos.repo", dest: "/etc/yum.repos.d/docker.repo" },
+]

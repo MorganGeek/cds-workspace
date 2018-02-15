@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-sudo yum update -y
+#sudo yum update -y
 sudo yum install epel-release -y
-sudo yum update -y
+#sudo yum update -y
 sudo yum install -y python-pip docker-latest git
 sudo service docker-latest start
 sudo pip install --upgrade pip

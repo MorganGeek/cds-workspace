@@ -1,0 +1,8 @@
+hostnames: [
+  { host_ip: "192.168.11.11", host_name: "cds"},
+]
+
+dependencies:
+  - jq
+  - unzip
+  - rsync
