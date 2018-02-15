@@ -1,0 +1,3 @@
+directories: [
+  { path: "/opt/cds", mode: "0777", user: "{{ global_user }}" },
+]

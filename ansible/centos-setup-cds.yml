@@ -1,8 +1,9 @@
 - hosts:
-    - cds
+    - cds-grp
   remote_user: "{{ global_user }}"
   serial: 1
   roles:
     - common
     - docker
+    - docker-compose
     - cds

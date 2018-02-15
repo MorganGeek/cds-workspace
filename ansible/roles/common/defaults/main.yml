@@ -6,3 +6,4 @@ dependencies:
   - jq
   - unzip
   - rsync
+  - git

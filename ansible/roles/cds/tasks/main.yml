@@ -1,0 +1,47 @@
+- name: Directories are created
+  file:
+    path: "{{ item.path }}"
+    state: "directory"
+    owner: "{{ item.user }}"
+    mode: "{{ item.mode }}"
+  with_items: "{{ directories }}"
+  tags: [docker]
+
+- name: checkout cds source code
+  git:
+    repo: 'https://github.com/ovh/cds.git'
+    dest: /opt/cds
+    update: no
+  tags: [git]
+
+- name: create PG database
+  become: yes
+  become_method: sudo
+  shell: export HOSTNAME=$(hostname); docker-compose up --no-recreate -d cds-db
+  args:
+    chdir: /opt/cds
+
+- name: check if db is UP
+  become: yes
+  become_method: sudoµ
+  shell: docker-compose logs
+  register: db_output
+  args:
+    chdir: /opt/cds
+  failed_when: "db_output.stdout.find('LOG:  database system is ready to accept connections') == -1"
+
+- name: run cds-migrate
+  become: yes
+  become_method: sudo
+  shell: docker-compose up --no-recreate cds-migrate
+  register: migrate_output
+  args:
+    chdir: /opt/cds
+  failed_when: migrate_output.stdout.find('cds_cds-migrate_1 exited with code 0') == -1
+
+- name: run API and UI
+  become: yes
+  become_method: sudo
+  args:
+    chdir: /opt/cds
+  shell: docker-compose up cds-api cds-ui

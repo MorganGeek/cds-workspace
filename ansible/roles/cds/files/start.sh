@@ -1,17 +1,4 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-#sudo yum update -y
-sudo yum install epel-release -y
-#sudo yum update -y
-sudo yum install -y python-pip docker-latest git
-sudo service docker-latest start
-sudo pip install --upgrade pip
-sudo pip install docker-compose
-sudo yum upgrade python*
-
-rm -rf cds
-git clone https://github.com/ovh/cds.git
+#sudo yum upgrade python*
 cd cds
 export HOSTNAME=$(hostname)
 
