@@ -7,22 +7,19 @@
   with_items: "{{ directories }}"
   tags: [docker]
 
+- name: Download docker repo
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+  register: copy_files
+
 - name: Dependencies are present
   package:
     name: "{{ item }}"
     state: present
   with_items: "{{ dependencies }}"
-  tags: [common]
-
-- name: files are copied
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-  with_items: "{{ files }}"
-  register: copy_files
   tags: [docker]
 
-# - name: "docker-py {{ docker_py_version }} is present"
 - name: Python dependencies are satisfied
   pip:
     requirements: "{{ role_path }}/files/pip-requirements.txt"

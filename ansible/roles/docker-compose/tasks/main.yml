@@ -1,6 +1,0 @@
-- name: Dependencies are present
-  package:
-    name: "{{ item }}"
-    state: present
-  with_items: "{{ dependencies }}"
-  tags: [docker-compose]

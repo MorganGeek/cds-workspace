@@ -28,7 +28,7 @@
   register: db_output
   args:
     chdir: /opt/cds
-  failed_when: "db_output.stdout.find('LOG:  database system is ready to accept connections') == -1"
+  #failed_when: "db_output.stdout.find('LOG:  database system is ready to accept connections') == -1"
 
 - name: run cds-migrate
   become: yes
@@ -37,7 +37,7 @@
   register: migrate_output
   args:
     chdir: /opt/cds
-  failed_when: migrate_output.stdout.find('cds_cds-migrate_1 exited with code 0') == -1
+  #failed_when: migrate_output.stdout.find('cds_cds-migrate_1 exited with code 0') == -1
 
 - name: run API and UI
   become: yes
